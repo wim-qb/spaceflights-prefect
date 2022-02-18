@@ -59,28 +59,22 @@ shuttles:
     engine: openpyxl
 
 preprocessed_companies:
-  type: pandas.ParquetDataSet
-  filepath: data/02_intermediate/preprocessed_companies.pq
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/preprocessed_companies.csv
   layer: intermediate
 
 preprocessed_shuttles:
-  type: pandas.ParquetDataSet
-  filepath: data/02_intermediate/preprocessed_shuttles.pq
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/preprocessed_shuttles.csv
   layer: intermediate
 
 model_input_table:
-  type: pandas.ParquetDataSet
-  filepath: data/03_primary/model_input_table.pq
+  type: pandas.CSVDataSet
+  filepath: data/03_primary/model_input_table.csv
   layer: primary
 
-active_modelling_pipeline.regressor:
+regressor:
   type: pickle.PickleDataSet
-  filepath: data/06_models/regressor_active.pickle
-  versioned: true
-  layer: models
-
-candidate_modelling_pipeline.regressor:
-  type: pickle.PickleDataSet
-  filepath: data/06_models/regressor_candidate.pickle
+  filepath: data/06_models/regressor.pickle
   versioned: true
   layer: models
