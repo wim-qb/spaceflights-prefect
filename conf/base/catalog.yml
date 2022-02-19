@@ -78,3 +78,19 @@ regressor:
   filepath: data/06_models/regressor.pickle
   versioned: true
   layer: models
+
+X_train:
+  type: pandas.ParquetDataSet
+  filepath: data/05_model_input/X_train.parquet
+
+X_test:
+  type: pandas.ParquetDataSet
+  filepath: data/05_model_input/X_test.parquet
+
+y_train:
+  type: pandas.CSVDataSet
+  filepath: data/05_model_input/Y_train.parquet
+
+y_test:
+  type: pandas.CSVDataSet
+  filepath: data/05_model_input/Y_test.parquet
