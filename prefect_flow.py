@@ -60,9 +60,10 @@ class KedroTask(Task):
     def run(self, session_id):
         metadata = bootstrap_project(self.project_path)
         logging.info(f"Running kedro session for id {session_id}")
+        # passing previous session_id gives env & any extra variables passed
         with KedroSession(
             session_id=session_id, project_path=self.project_path
-        ).__enter__() as session:
+        ) as session:
             session.run(self.pipeline_name, node_names=[self.node_name])
 
 
