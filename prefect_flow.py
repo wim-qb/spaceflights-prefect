@@ -114,7 +114,7 @@ def build_and_register_flow(pipeline_name, env):
         tasks[node._unique_key]["parent_tasks"] = parent_tasks
         node_task = tasks[node._unique_key]["task"]
 
-    with Flow(metadata.project_name) as flow:
+    with Flow(pipeline_name) as flow:
         session_id = init_task()
         for task in tasks.values():
             node_task: Task = task["task"]
