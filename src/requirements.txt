@@ -108,8 +108,6 @@ gitpython==3.1.26
     # via kedro
 graphql-core==3.1.7
     # via strawberry-graphql
-greenlet==1.1.2
-    # via sqlalchemy
 h11==0.13.0
     # via uvicorn
 heapdict==1.0.1
@@ -121,7 +119,9 @@ idna==2.10
     #   anyio
     #   requests
 importlib-resources==5.4.0
-    # via jsonschema
+    # via
+    #   jsonschema
+    #   prefect
 iniconfig==1.1.1
     # via pytest
 ipykernel==6.9.1
@@ -210,7 +210,7 @@ jupyterlab-server==2.10.3
     # via jupyterlab
 jupyterlab-widgets==1.0.2
     # via ipywidgets
-kedro[pandas.csvdataset,pandas.exceldataset,pandas.parquetdataset]==0.17.6
+kedro[pandas.csvdataset,pandas.exceldataset,pandas.parquetdataset]==0.17.7
     # via
     #   -r src/requirements.in
     #   kedro-telemetry
@@ -295,7 +295,7 @@ packaging==21.3
     #   prefect
     #   pytest
     #   qtpy
-pandas==1.4.1
+pandas==1.3.5
     # via
     #   kedro
     #   kedro-viz
@@ -325,7 +325,7 @@ pluggy==0.13.1
     #   pytest
 poyo==0.5.0
     # via cookiecutter
-prefect==0.15.13
+prefect==1.1.0
     # via -r src/requirements.in
 prometheus-client==0.13.1
     # via

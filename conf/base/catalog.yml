@@ -69,9 +69,7 @@ preprocessed_shuttles:
   layer: intermediate
 
 model_input_table:
-  type: pandas.CSVDataSet
-  filepath: data/03_primary/model_input_table.csv
-  layer: primary
+  type: MemoryDataSet
 
 regressor:
   type: pickle.PickleDataSet

@@ -41,7 +41,7 @@ def prefect_deploy(pipeline_name, env, package_name):
 
         tasks[node._unique_key]["parent_tasks"] = parent_tasks
 
-    # Below task is used to instantiate a kedro session within the scope of a
+    # Below task is used to instantiate a KedroSession within the scope of a
     # Prefect flow
     init_task = KedroInitTask(
         pipeline_name=pipeline_name,
@@ -63,12 +63,12 @@ def prefect_deploy(pipeline_name, env, package_name):
 
 
 class KedroInitTask(Task):
-    """Task to initialize kedro session"""
+    """Task to initialize KedroSession"""
 
     def __init__(
         self,
         pipeline_name: str,
-        package_name: str = None,
+        package_name: str,
         project_path: Union[Path, str] = None,
         env: str = None,
         extra_params: Dict[str, Any] = None,
@@ -81,8 +81,8 @@ class KedroInitTask(Task):
         self.env = env
         super().__init__(name=f"{package_name}_initialization", *args, **kwargs)
 
-    def run(self) -> Tuple[DataCatalog, KedroSession]:
-        """Initializes a kedro session and returns the data catalog and session"""
+    def run(self) -> Tuple[str, DataCatalog]:
+        """Initializes a Kedro session and returns the DataCatalog and KedroSession"""
         # bootstrap project within task / flow scope
         bootstrap_project(self.project_path)
 
@@ -94,21 +94,22 @@ class KedroInitTask(Task):
         pipeline = pipelines.get(self.pipeline_name)
         context = session.load_context()
         catalog = context.catalog
-
         unregistered_ds = pipeline.data_sets() - set(catalog.list())  # type: ignore[union-attr]
         for ds_name in unregistered_ds:
             catalog.add(ds_name, MemoryDataSet())
-        return catalog, session
+        return catalog, session.session_id
 
 
 class KedroTask(Task):
     """Kedro node as a Prefect task."""
+
     def __init__(self, node: Node):
         self._node = node
         super().__init__(name=node.name, tags=node.tags)
 
-    def run(self, catalog, session):
-        run_node(self._node, catalog, _create_hook_manager(), session.session_id)
+    def run(self, argument_tuple: Tuple[DataCatalog, str]):
+        # argument_tuple = (data_catalog, session_id)
+        run_node(self._node, argument_tuple[0], _create_hook_manager(), argument_tuple[1])
 
 
 def instantiate_task(
@@ -121,11 +122,11 @@ def instantiate_task(
     way we avoid duplicate instantiations of the same node task.
 
     Args:
-        node: kedro node for which a prefect task is being created.
+        node: Kedro node for which a Prefect task is being created.
         tasks: dictionary mapping node names to a dictionary containing
         node tasks and parent node tasks.
 
-    Returns: prefect task for the passed node and task dictionary.
+    Returns: Prefect task for the passed node and task dictionary.
 
     """
     if tasks.get(node._unique_key) is not None:
@@ -143,19 +144,19 @@ def generate_flow(
     tasks: Dict[str, Dict[str, Union[KedroTask, List[KedroTask]]]],
 ):
     """
-    Constructs a prefect flow given a task dictionary. Task dictionary
-    maps kedro node names to a dictionary containing a node task and its
+    Constructs a Prefect flow given a task dictionary. Task dictionary
+    maps Kedro node names to a dictionary containing a node task and its
     parents.
 
     Args:
-        init_task: Prefect initialisation tasks. Used to instantiate a kedro
-        session within the scope of a prefect flow.
-        tasks: dictionary mapping kedro node names to a dictionary
+        init_task: Prefect initialisation tasks. Used to instantiate a Kedro
+        session within the scope of a Prefect flow.
+        tasks: dictionary mapping Kedro node names to a dictionary
         containing a corresponding node task and its parents.
 
     Returns: None
     """
-    catalog, session = init_task
+    child_task_args = init_task
     for task in tasks.values():
         node_task = task["task"]
         if len(task["parent_tasks"]) == 0:
@@ -163,12 +164,14 @@ def generate_flow(
             parent_tasks = [init_task]
         else:
             parent_tasks = task["parent_tasks"]
-        # Set upstream tasks and bind required kwargs
-        node_task.bind(upstream_tasks=parent_tasks, catalog=catalog, session=session)  # type: ignore[union-attr]
+        # Set upstream tasks and bind required kwargs.
+        # Note: Unpacking the return from init tasks will generate two
+        # sub-tasks in the prefect graph. To avoid this we pass the init return on unpacked.
+        node_task.bind(upstream_tasks=parent_tasks, argument_tuple=child_task_args)
 
 
 def instantiate_client(project_name: str):
-    """Initiates prefect client"""
+    """Initiates Prefect client"""
     client = Client()
     try:
         client.create_project(project_name=project_name)
